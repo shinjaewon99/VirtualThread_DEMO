@@ -5,9 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public class Pinned {
+
+    private static final ReentrantLock lock = new ReentrantLock();
 
     private static final Runnable runnable = new Runnable() {
         @Override
@@ -18,15 +21,18 @@ public class Pinned {
             // 코드블럭에서만 그런게 아니라 JDBC 이런데에서도 발생 할 수있음
             // -Djdk.tracePinnedThreads=full  or -Djdk.tracePinnedThreads=short 를 통해  detect
             // 빌드할때 cofing 설정을 걸어준다
-            synchronized (this) {
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                log.info("2) run. thread: {}", Thread.currentThread());
+//            synchronized (this) {
+            lock.lock();
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                lock.unlock();
             }
+            log.info("2) run. thread: {}", Thread.currentThread());
         }
+//        }
     };
 
     public static void main(String[] args) {
