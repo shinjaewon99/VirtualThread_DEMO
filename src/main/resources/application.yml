@@ -5,3 +5,6 @@ spring:
   threads:
     virtual:
       enabled: true
+  task:
+    scheduling:
+      thread-name-prefix : mySch- #쓰레드 이름을 지정
